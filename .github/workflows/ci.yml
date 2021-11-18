@@ -1,0 +1,43 @@
+name: CI
+on: [push, pull_request]
+env:
+  GRADLE_OPTS: "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-20.04
+            kotlinName: linuxX64
+
+          - name: Windows
+            os: windows-2019
+            kotlinName: mingwX64
+
+          - name: macOS
+            os: macos-11
+            kotlinName: macosX64
+
+    name: "Build and test (${{ matrix.name }})"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2.3.1
+        with:
+          java-version: 11
+          distribution: adopt
+
+      - name: Build and test
+        run: ./gradlew --parallel ${{ matrix.kotlinName }}Test
